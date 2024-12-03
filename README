@@ -1,0 +1,6 @@
+To run a day
+
+go run day_01/main.go t 1 # test input for part 1
+go run day_01/main.go r 1 # full input for part 1
+go run day_01/main.go t 2 # test input for part 2
+go run day_01/main.go r 2 # full input for part 2
