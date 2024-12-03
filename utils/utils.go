@@ -51,7 +51,7 @@ func readInput(day int) string {
 }
 
 func readFile(day int, filename string) string {
-	file_str, err_1 := os.ReadFile(fmt.Sprintf("day_%d/%s", day, filename))
+	file_str, err_1 := os.ReadFile(fmt.Sprintf("day_%.2d/%s", day, filename))
 
 	if err_1 != nil {
 		file_str_2, err_2 := os.ReadFile(filename)
