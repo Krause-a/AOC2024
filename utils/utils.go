@@ -63,3 +63,30 @@ func readFile(day int, filename string) string {
 	}
 	return string(file_str)
 }
+
+func Contains[T comparable](s []T, value T) bool {
+	for _, v := range s {
+		if v == value {
+			return true
+		}
+	}
+	return false
+}
+
+func Any[T interface{}](s []T, fn func(T) bool) bool {
+	for _, v := range s {
+		if fn(v) {
+			return true
+		}
+	}
+	return false
+}
+
+func All[T interface{}](s []T, fn func(T) bool) bool {
+	for _, v := range s {
+		if !fn(v) {
+			return false
+		}
+	}
+	return true
+}
