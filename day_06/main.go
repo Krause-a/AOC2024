@@ -98,7 +98,7 @@ func (g *Guard) isRepeatState() bool {
 	}
 	return false
 }
-func (g *Guard) printInfo() {
+func (g *Guard) printInfo(loopPossibilities StepHistory) {
 	var output string
 	for y := range g.mapSize.y {
 		for x := range g.mapSize.x {
@@ -145,6 +145,11 @@ func (g *Guard) printInfo() {
 				}
 				output += dirStr
 
+				continue
+			}
+			dirs, looped := loopPossibilities[pos]
+			if looped {
+				output += "L "
 				continue
 			}
 			output += ". "
@@ -237,46 +242,69 @@ func parseDirection(char byte) Vec {
 
 func part_2(input string) {
 	size, blocks, gPos, gDir := parseInputMap(input)
+	loopBlocks := make(BlockMap)
 	guard := makeGuard(size, &blocks, gPos, gDir)
 	loopPossibilities := make(StepHistory, 0)
-	var stepCount int
+	loadLoopBack(&guard, &blocks, &loopPossibilities)
+	// var stepCount int
 	for !guard.isRepeatState() && guard.isInArea() {
-		stepCount++
-		fmt.Printf("\nStep %d\n", stepCount)
-		guard.printInfo()
+		// stepCount++
+		// fmt.Printf("\nStep %d\n", stepCount)
+		// guard.printInfo(loopPossibilities)
 		// fmt.Printf("current guard position %v\n", guard.pos)
 		var sendLoopBack bool
 		if guard.checkBlocked() {
-			fmt.Printf("Blocked!\n")
+			// fmt.Printf("Blocked!\n")
 			sendLoopBack = true
 		}
-		if stepCount >= 10 {
-			return
+		// if stepCount >= 10 {
+		// 	return
+		// }
+		dirs, exists := loopPossibilities[guard.pos]
+		if !exists {
+			dirs = [4]bool{}
 		}
+		dirs[dirToIndex(guard.dir)] = true
+		loopPossibilities[guard.pos] = dirs
 		guard.takeStep()
 		if sendLoopBack {
-			back := invertVec(guard.dir)
-			backPos := guard.pos
-			for true {
-				backPos = addVec(backPos, back)
-				_, blocked := blocks[backPos]
-				if blocked || backPos.x < 0 || backPos.y < 0 || backPos.x >= size.x || backPos.y >= size.y {
-					break
+			loadLoopBack(&guard, &blocks, &loopPossibilities)
+		}
+		loopDirs, isLoopStep := loopPossibilities[guard.pos]
+		if isLoopStep {
+			if loopDirs[dirToIndex(rotate(guard.dir))] {
+				nextPos := addVec(guard.pos, guard.dir)
+				_, blocked := blocks[nextPos]
+				if !blocked {
+					loopBlocks[nextPos] = struct{}{}
 				}
-				dirs, exists := loopPossibilities[backPos]
-				if !exists {
-					dirs = [4]bool{}
-				}
-				dirs[dirToIndex(invertVec(back))] = true
-				loopPossibilities[backPos] = dirs
 			}
 		}
 	}
-	println(len(guard.history))
+	println(len(loopBlocks))
 
 	// size, blocks, gPos, gDir := parseInputMap(input)
 	// guard := makeGuard(size, &blocks, gPos, gDir)
 	// (maybe) Any time the guard crosses over his own tail AFTER the first obstacle, that is a loop position!
 	// More info
 	// Any time an obstacle is hit and the rotation is performed, fire a loop line backwards 
+}
+
+func loadLoopBack(guard *Guard, blocks *BlockMap, loopBack *StepHistory) {
+	loopPossibilities := *loopBack
+	back := invertVec(guard.dir)
+	backPos := guard.pos
+	for true {
+		backPos = addVec(backPos, back)
+		_, blocked := (*blocks)[backPos]
+		if blocked || backPos.x < 0 || backPos.y < 0 || backPos.x >= guard.mapSize.x || backPos.y >= guard.mapSize.y {
+			break
+		}
+		dirs, exists := loopPossibilities[backPos]
+		if !exists {
+			dirs = [4]bool{}
+		}
+		dirs[dirToIndex(invertVec(back))] = true
+		loopPossibilities[backPos] = dirs
+	}
 }
