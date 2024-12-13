@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"aoc_2024/utils/vec"
 	"fmt"
 	"os"
 	"strings"
@@ -95,4 +96,18 @@ func All[T interface{}](s []T, fn func(T) bool) bool {
 func IsTest() bool {
 	run_type := strings.Trim(os.Args[1], " \n")
 	return run_type == "t"
+}
+
+func EachRuneWithVec(input string, fn func(vec.Vec, rune)) vec.Vec {
+	lines := strings.Split(input, "\n")
+	lineLen := 0
+	for y, line := range lines {
+		if lineLen == 0 {
+			lineLen = len(line)
+		}
+		for x, char := range line {
+			fn(vec.MakeVec(x, y), char)
+		}
+	}
+	return vec.MakeVec(lineLen, len(lines) - 1)
 }

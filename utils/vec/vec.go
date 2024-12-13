@@ -10,6 +10,8 @@ var (
 	Down = Vec {x:0, y:1}
 	Left = Vec {x:-1, y:0}
 	Right = Vec {x:1, y:0}
+	Zero = Vec {x:0, y:0}
+	One = Vec {x:1, y:1}
 )
 
 func MakeVec(x int, y int) Vec {
@@ -53,6 +55,11 @@ func (v *Vec) NormalizeToInt() Vec {
 	for y != 0 {
 		x, y = y, x%y
 	}
+
+	if x < 0 {
+		x *= -1
+	}
+
 	return Vec {
 		x: v.x / x,
 		y: v.y / x,
@@ -84,4 +91,25 @@ func FromIndex(index int) Vec {
 		return Right
 	}
 	panic("Invalid index converted to Vec")
+}
+
+func (v *Vec) Neighbors() [4]Vec {
+	return [4]Vec {
+		v.Add(FromIndex(0)),
+		v.Add(FromIndex(1)),
+		v.Add(FromIndex(2)),
+		v.Add(FromIndex(3)),
+	}
+}
+
+func (v *Vec) Distance(other Vec) int {
+	xDelta := v.x - other.x
+	yDelta := v.y - other.y
+	if xDelta < 0 {
+		xDelta = -xDelta
+	}
+	if yDelta < 0 {
+		yDelta = -yDelta
+	}
+	return xDelta + yDelta
 }
