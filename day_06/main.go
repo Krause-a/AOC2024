@@ -79,6 +79,20 @@ func (g *Guard) takeStep() {
 	// fmt.Printf("%v\n", g.pos)
 	// fmt.Printf("Step Taken %v\n", g.pos)
 }
+func (g *Guard) wouldBeNextPos() Vec {
+
+	dir := g.dir
+	nextPos := addVec(g.pos, dir)
+	_, blocked := (*g.blockMap)[nextPos]
+	for blocked {
+		// fmt.Printf("BLOCKED:")
+		dir = rotate(dir)
+		nextPos = addVec(g.pos, dir)
+		_, blocked = (*g.blockMap)[nextPos]
+	}
+	return nextPos
+}
+
 func (g *Guard) checkBlocked() bool {
 	// fmt.Printf("Check %v + %v\n", g.pos, g.dir)
 	nextPos := addVec(g.pos, g.dir)
@@ -235,46 +249,32 @@ func parseDirection(char byte) Vec {
 
 
 func part_2(input string) {
+	clints_way := true
+	if clints_way {
+		clint_way(input)
+		return
+	}
 	size, blocks, gPos, gDir := parseInputMap(input)
 	loopBlocks := make(BlockMap)
 	guard := makeGuard(size, &blocks, gPos, gDir)
 	for !guard.isRepeatState() && guard.isInArea() {
 		nextPos := addVec(guard.pos, guard.dir)
+		dir := guard.dir
+		_, blocked := blocks[nextPos]
+		for blocked {
+			dir = rotate(dir)
+			nextPos = addVec(guard.pos, dir)
+			_, blocked = blocks[nextPos]
+		}
 		_, stepped := guard.history[nextPos]
-		if !stepped && guard.willLoopIfBlocked() {
+		if !blocked && !stepped && guard.willLoopIfBlocked() {
+		// if guard.willLoopIfBlocked() {
 			loopBlocks[nextPos] = struct{}{}
 		}
 		guard.takeStep()
-		// guard.printInfo()
-		// println()
 	}
-
-	// println("Final Path")
-	// guard.printInfo()
-	// println()
-
-	// Hmm. What is the gotcha?
-	// Print out final Loop blocks
-	// Make a test case that creates a non-touched loop
-	/*
-		. # . . . . . . . . . . . .
-		. . . . . . . O . . . . . #
-		. . . . . . . . # . . . . .
-		. O . . # . . . . . O # . .
-		. > . . . . . # . . . . . .
-		. . . . . # . # . . O . . .
-		. O . . . O . O . # O . . .
-		. . . . . . . # . . . . . .
-		. . . # . . . . O . O . # .
-		# . . O . . O . O . O . . .
-		. . . . . . # . O . O . . .
-		. . . . . . . . . . . . . .
-		. . . . # . . O . . . . . .
-		. . . . . . . . O . # . . .
-		. . . . . . . . . . . . . .
-	*/
-	// Idea. Test out putting a block in front of the guard EVERY SINGLE STEP.
-	// This will likely be HUGE overkill.
+	guard.printInfo()
+	println()
 
 	var printStr string
 	for y := range size.y {
@@ -303,6 +303,7 @@ func part_2(input string) {
 	// Clint says somewhere around over 1500
 	// 1785 is too low
 	// 1783 is too low
+	// 1792 is wrong (no longer low or high)
 }
 
 
@@ -317,7 +318,7 @@ func (g *Guard) willLoopIfBlocked() bool {
 		}
 		ghostGuard.takeStep()
 		if ghostGuard.pos == hypotheticalBlockPos {
-			return false
+			return true // stuck in 4 blocks
 		}
 		// ghostGuard.printInfo()
 	}
@@ -327,4 +328,103 @@ func (g *Guard) willLoopIfBlocked() bool {
 	// 	println()
 	// }
 	return ghostGuard.isRepeatState()
+}
+
+
+func clint_way(input string) {
+	fmt.Printf("Clint's Way\n")
+	size, blocks, gPos, gDir := parseInputMap(input)
+	loopBlocks := make(BlockMap)
+	guard := makeGuard(size, &blocks, gPos, gDir)
+	for !guard.isRepeatState() && guard.isInArea() {
+		guard.takeStep()
+	}
+	// guard.printInfo()
+	// println()
+
+	for pos, dirs := range guard.history {
+		for _, isTrue:= range dirs {
+			if !isTrue {
+				continue
+			}
+			// ghostGuardPos := addVec(pos, invertVec(indexToDir(dir)))
+
+			hypoBlockPos := pos
+
+			ghostGuard := makeGuard(size, &blocks, gPos, gDir)
+			for !ghostGuard.isRepeatState() && ghostGuard.isInArea() {
+
+				for i := 0; ghostGuard.wouldBeNextPos() == hypoBlockPos && i < 4; i++ {
+					ghostGuard.dir = rotate(ghostGuard.dir)
+					// fmt.Printf("Hypo deflect\n")
+				}
+				ghostGuard.takeStep()
+				if ghostGuard.pos == hypoBlockPos {
+					// stuck in 4 blocks
+					fmt.Printf("4 blocks with %v\n", hypoBlockPos)
+					loopBlocks[hypoBlockPos] = struct{}{}
+					// ghostGuard.printInfo()
+					// println()
+					break
+				}
+				// ghostGuard.printInfo()
+			}
+			if ghostGuard.isRepeatState() {
+				loopBlocks[hypoBlockPos] = struct{}{}
+			}
+		}
+	}
+
+	var printStr string
+	for y := range size.y {
+		for x := range size.x {
+			pos := Vec {x: x, y: y}
+			_, exists := loopBlocks[pos]
+			if exists {
+				printStr += "O "
+
+			} else if pos == gPos {
+				if gDir == Up {
+					printStr += "^ "
+				} else if gDir == Down {
+					printStr += "v "
+				} else if gDir == Left {
+					printStr += "< "
+				} else if gDir == Right {
+					printStr += "> "
+				}
+			}else {
+				_, exists = blocks[pos]
+				if exists {
+					printStr += "# "
+				} else {
+					printStr += ". "
+				}
+			}
+		}
+		printStr += "\n"
+	}
+
+	println(printStr)
+
+	println(len(loopBlocks))
+	// 1883 is too high
+	// 500 is too low
+	// Clint says somewhere around over 1500
+	// 1785 is too low
+	// 1783 is too low
+	// 1792 is wrong (no longer low or high)
+}
+
+func indexToDir(i int) Vec {
+	if i == 0 {
+		return Up
+	} else if i == 1 {
+		return Down
+	} else if i == 2 {
+		return Left
+	} else if i == 3 {
+		return Right
+	}
+	panic("None const direction attempted conversion to index")
 }

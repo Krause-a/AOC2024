@@ -67,13 +67,14 @@ func readFile(day int, filename string) string {
 func Contains[T comparable](s []T, value T) bool {
 	for _, v := range s {
 		if v == value {
-			return true
+			goto truth
 		}
 	}
 	return false
+	truth: return true
 }
 
-func Any[T interface{}](s []T, fn func(T) bool) bool {
+func Any[T any](s []T, fn func(T) bool) bool {
 	for _, v := range s {
 		if fn(v) {
 			return true
@@ -89,4 +90,9 @@ func All[T interface{}](s []T, fn func(T) bool) bool {
 		}
 	}
 	return true
+}
+
+func IsTest() bool {
+	run_type := strings.Trim(os.Args[1], " \n")
+	return run_type == "t"
 }
