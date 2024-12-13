@@ -70,6 +70,7 @@ type OP rune
  const (
 	ADD = '+'
 	MUL = '*'
+	CON = '|'
 )
 
 func applyOperation(a int, b int, op OP) int {
@@ -77,6 +78,15 @@ func applyOperation(a int, b int, op OP) int {
 		return a + b
 	} else if op == MUL {
 		return a * b
+	} else if op == CON {
+		aStr := strconv.Itoa(a)
+		bStr := strconv.Itoa(b)
+		cStr := aStr + bStr
+		c, err := strconv.Atoi(cStr)
+		if err != nil {
+			panic(err)
+		}
+		return c
 	} else {
 		panic("Missing Op")
 	}
@@ -122,7 +132,57 @@ func parseInput(input string) []TestInfo {
 }
 
 func part_2(input string) {
-	println("Part 2 START")
-	println(input)
-	println("Part 2 END")
+	tests := parseInput(input)
+	passingTest := make([]TestInfo, 0)
+	for _, test := range tests {
+		ops := make([]OP, len(test.inputs) - 1)
+		for i := range ops {
+			ops[i] = ADD
+		}
+		for true {
+			checkValue := 0
+			for i, input := range test.inputs {
+				if i == 0 {
+					checkValue = input
+				} else {
+					checkValue = applyOperation(checkValue, input, ops[i-1])
+				}
+			}
+			if checkValue == test.testValue {
+				// fmt.Printf("Pass %d = %d ... %v . %v\n", test.testValue, checkValue, test.inputs, ops)
+				passingTest = append(passingTest, test)
+				break
+			}
+
+			hasOnlyCon := true
+			for _, op := range ops {
+				if op != CON {
+					hasOnlyCon = false
+					break
+				}
+			}
+			if hasOnlyCon {
+				break
+			}
+			for i, op := range ops {
+				if op == ADD {
+					ops[i] = MUL
+					break
+				} else if op == MUL {
+					ops[i] = CON
+					break
+				} else if op == CON {
+					ops[i] = ADD
+				}
+			}
+		}
+	}
+
+	sum := 0
+	for _, test := range passingTest {
+		sum += test.testValue
+	}
+
+	println(sum)
+
 }
