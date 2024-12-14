@@ -40,6 +40,8 @@ func ParseInput(day int) (string, int){
 		input = readInput(day)
 	}
 
+	input = strings.TrimSuffix(input, "\n")
+
 	return input, part_num
 }
 
