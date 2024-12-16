@@ -4,6 +4,7 @@ import (
 	"aoc_2024/utils"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 func main() {
@@ -121,6 +122,12 @@ func part_2(input string) {
 				size: i/2,
 			})
 		} else { // Free Space
+			// Found a potential bug
+			// 0202020 is like so
+			// zero file size
+			// two free  space
+			// ..
+			// ends up with 6 free space in a row. I do not think this is a real case but it is a bug in my logic.
 			freeSpaces = append(freeSpaces, FreeSpace{
 				start: currentIndex,
 				stop: currentIndex + size - 1,
@@ -134,7 +141,7 @@ func part_2(input string) {
 		foundSpaceIndex := -1
 		var space FreeSpace
 		for spaceIndex, freeSpace := range freeSpaces {
-			if freeSpace.Width() >= file.Width() && freeSpace.start < file.start {
+			if freeSpace.Width() >= file.Width() && freeSpace.stop < file.start {
 				foundSpaceIndex = spaceIndex
 				space = freeSpace
 				break
@@ -147,62 +154,33 @@ func part_2(input string) {
 			files[i] = file
 			freeSpaces[foundSpaceIndex] = space
 		}
+		fmt.Printf("%v\n", freeSpaces)
 	}
 
-	fmt.Printf("%v\n", files)
+	for _, file := range files {
+		printFile(file)
+	}
 	printFiles(files)
-
-	// Got the fill order wrong here
-	// for _, freeSpace := range freeSpaces {
-	// 	screw_it:
-	// 	rightIndex := len(files) - 1
-	// 	fileToReindex := files[rightIndex]
-	// 	println()
-	// 	for true {
-	// 		fileToReindex = files[rightIndex]
-	// 		fmt.Printf("%v, %v\n", freeSpace, fileToReindex)
-	// 		if fileToReindex.Width() <= freeSpace.Width() && fileToReindex.start > freeSpace.stop {
-	// 			break
-	// 		}
-	// 		rightIndex -= 1
-	// 		if rightIndex < 0 {
-	// 			panic("huh?")
-	// 		}
-	// 	}
-	// 	if fileToReindex.Width() > freeSpace.Width() || fileToReindex.start < freeSpace.stop {
-	// 		fmt.Printf("Couldn't find one of interest\n")
-	// 		break
-	// 	}
-	// 	fmt.Printf("Selected free: %v, file: %v\n", freeSpace, fileToReindex)
-	// 	fmt.Printf("free width: %d, file width: %d\n", freeSpace.Width(), fileToReindex.Width())
-	// 	// Order
-	// 	fileToReindex.stop = freeSpace.start + fileToReindex.Width() - 1
-	// 	fileToReindex.start = freeSpace.start
-	// 	//
-	// 	freeSpace.start = fileToReindex.stop + 1
-	// 	fmt.Printf("free width: %d, file width: %d\n", freeSpace.Width(), fileToReindex.Width())
-	// 	if freeSpace.Width() != 0 {
-	// 		println("screw it")
-	// 		goto screw_it
-	// 	}
-	// }
 
 	sum := 0
 	for _, file := range files {
-		fmt.Printf("file: %v\nSmurt Maff = %d\n", file, ((file.Width() * (file.Width() - 1))/2 + file.start * file.Width()) * file.size)
+		// fmt.Printf("file: %v\nSmurt Maff = %d\n", file, ((file.Width() * (file.Width() - 1))/2 + file.start * file.Width()) * file.size)
 		sum += ((file.Width() * (file.Width() - 1))/2 + file.start * file.Width()) * file.size
 
-		dumbMaff := 0
-		for i := file.start; i <= file.stop; i++ {
-			dumbMaff += file.size * i
-		}
-		fmt.Printf("Dumb Maff = %d\n", dumbMaff)
+		// dumbMaff := 0
+		// for i := file.start; i <= file.stop; i++ {
+		// 	dumbMaff += file.size * i
+		// }
+		// fmt.Printf("Dumb Maff = %d\n", dumbMaff)
 	}
 
 	println(sum)
+	// Part 1
 	//   89536572931 is too low
 	//     853653744 is too low dummy
 	// 6337367222422
+
+	// Part 2
 
 }
 
@@ -229,4 +207,9 @@ func printFiles(files []FileSize) {
 		}
 		index += 1
 	}
+	println()
+}
+
+func printFile(file FileSize) {
+	fmt.Printf("%s%s\n", strings.Repeat(".", file.start), strings.Repeat(strconv.Itoa(file.size), file.stop - file.start + 1))
 }
