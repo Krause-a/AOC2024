@@ -122,25 +122,35 @@ func part_2(input string) {
 				size: i/2,
 			})
 		} else { // Free Space
-			// Found a potential bug
-			// 0202020 is like so
-			// zero file size
-			// two free  space
-			// ..
-			// ends up with 6 free space in a row. I do not think this is a real case but it is a bug in my logic.
 			freeSpaces = append(freeSpaces, FreeSpace{
 				start: currentIndex,
 				stop: currentIndex + size - 1,
 			})
-			currentIndex += size
+		}
+		currentIndex += size // I was stuck on a bug where this was in the else block and I didn't notice :þ
+	}
+
+	cleanedFreeSpaces := make([]FreeSpace, 0)
+	freeSpace := FreeSpace {
+		start: -1,
+		stop: -2,
+	}
+
+	for i := range freeSpaces {
+		if freeSpace.stop + 1 == freeSpaces[i].start {
+			freeSpace.stop = freeSpaces[i].stop
+		} else {
+			cleanedFreeSpaces = append(cleanedFreeSpaces, freeSpace)
+			freeSpace = freeSpaces[i]
 		}
 	}
+	cleanedFreeSpaces = append(cleanedFreeSpaces, freeSpace)
 
 	for i := len(files) - 1; i >= 0; i-- {
 		file := files[i]
 		foundSpaceIndex := -1
 		var space FreeSpace
-		for spaceIndex, freeSpace := range freeSpaces {
+		for spaceIndex, freeSpace := range cleanedFreeSpaces {
 			if freeSpace.Width() >= file.Width() && freeSpace.stop < file.start {
 				foundSpaceIndex = spaceIndex
 				space = freeSpace
@@ -152,15 +162,9 @@ func part_2(input string) {
 			file.start = space.start
 			space.start = file.stop + 1
 			files[i] = file
-			freeSpaces[foundSpaceIndex] = space
+			cleanedFreeSpaces[foundSpaceIndex] = space
 		}
-		fmt.Printf("%v\n", freeSpaces)
 	}
-
-	for _, file := range files {
-		printFile(file)
-	}
-	printFiles(files)
 
 	sum := 0
 	for _, file := range files {
@@ -181,12 +185,11 @@ func part_2(input string) {
 	// 6337367222422
 
 	// Part 2
+	// 6361380647183
 
 }
 
 func printFiles(files []FileSize) {
-	// This has shown a bug!
-	// For some reason I am having duplicate start and stop indicies for sizes 1 and 7.
 	index := 0
 	for true {
 		flag := false
@@ -210,6 +213,6 @@ func printFiles(files []FileSize) {
 	println()
 }
 
-func printFile(file FileSize) {
-	fmt.Printf("%s%s\n", strings.Repeat(".", file.start), strings.Repeat(strconv.Itoa(file.size), file.stop - file.start + 1))
+func printFile(file FileSize, width int) {
+	fmt.Printf("%s%s%s\n", strings.Repeat(".", file.start), strings.Repeat(strconv.Itoa(file.size), file.stop - file.start + 1), strings.Repeat(".", width - file.stop ))
 }
