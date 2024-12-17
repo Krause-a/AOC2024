@@ -39,38 +39,44 @@ func part_1(input string) {
 		}
 	}
 
-	nextPaths := make([]TrailPoint, 0)
-	finalPathPoints := make(map[vec.Vec]struct{}, 0)
-
-	for len(validPaths) > 0 {
-		for _, tp := range validPaths {
-			for _, o := range vm.NeighborsTo(tp.v) {
-				otherChar := vm.Vm[o]
-				// fmt.Printf("\n%v\n", o)
-				// vm.Print()
-				h, err := strconv.Atoi(string(otherChar))
-				if err != nil {
-					panic(err)
-				}
-
-				if (h - tp.h) == 1 {
-					if h == MAX_HEIGHT {
-						fmt.Printf("Max Found at %v\n", o)
-						finalPathPoints[o] = struct{}{}
-					}
-					nextPaths = append(nextPaths, TrailPoint{v: o, h: h})
-				}
-			}
-		}
-		validPaths = nextPaths
-		nextPaths = make([]TrailPoint, 0)
+	sum := 0
+	otherSum := 0
+	for _, v := range validPaths {
+		foundTrailends := make(map[vec.Vec]struct{})
+		amount := StepAll(&foundTrailends, &vm, v.v)
+		otherSum += amount
+		// fmt.Printf("Amount for %v == %d,,,%d\n", v.v, amount, len(foundTrailends))
+		sum += len(foundTrailends)
 	}
-	
-	fmt.Printf("%d\n", len(finalPathPoints))
+
+	fmt.Printf("Part 1: %d\n", sum)
+	fmt.Printf("Part 2: %d\n", otherSum)
+}
+
+func StepAll(foundTrailends *map[vec.Vec]struct{}, vm *vec.VecMap, v vec.Vec) int {
+	if vm.Vm[v] == '9' {
+		(*foundTrailends)[v] = struct{}{}
+		return 1
+	}
+
+	sum := 0
+	for _, nv := range StepUp(vm, v) {
+		sum += StepAll(foundTrailends, vm, nv)
+	}
+	return sum
+}
+
+func StepUp(vm *vec.VecMap, v vec.Vec) []vec.Vec {
+	out := make([]vec.Vec, 0)
+	h := vm.Vm[v]
+	for _, o := range vm.NeighborsTo(v) {
+		if vm.Vm[o] - h == 1 {
+			out = append(out, o)
+		}
+	}
+	return out
 }
 
 func part_2(input string) {
-	println("Part 2 START")
-	println(input)
-	println("Part 2 END")
+	part_1(input)
 }
