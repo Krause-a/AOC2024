@@ -61,6 +61,57 @@ func part_2(input string) {
 }
 
 func TheWholeThing(input string, blinks int) {
+	// The fact that the puzzle says it is ordered at all is a red herring
+	// Each stone is completely alone
+	numberStrings := strings.Split(input, " ")
+	previousStones := make([]Stone, 0)
+	for _, numberStr := range numberStrings {
+		stone, err := strconv.Atoi(numberStr)
+		if err != nil {
+			panic(err)
+		}
+		// fmt.Printf("Adding stone %d\n", stone)
+		previousStones = append(previousStones, Stone(stone))
+	}
+
+	nextStones := make([]Stone, 0)
+
+	// fmt.Printf("%v\n", previousStones)
+	for blink := range blinks {
+		fmt.Printf("Blink %d Current size = %d\n", blink, len(previousStones))
+		index := 0
+		for _, s := range previousStones {
+			consumed, ns := s.FirstRule()
+			if len(nextStones) <= index {
+				nextStones = append(nextStones, Stone(0))
+			}
+			if consumed {
+				nextStones[index] = ns
+			} else {
+				consumed, nns := s.SecondRule()
+				if consumed {
+					nextStones[index] = nns[0]
+					index += 1
+					if len(nextStones) <= index {
+						nextStones = append(nextStones, Stone(0))
+					}
+					nextStones[index] = nns[1]
+				} else {
+					nextStones[index] = s.ThirdRule()
+				}
+			}
+			index += 1
+		}
+		nextStones, previousStones = previousStones, nextStones
+		// fmt.Printf("%v\n", previousStones)
+	}
+
+	fmt.Printf("%d\n", len(previousStones))
+}
+
+func part_1_for_posterity(input string) {
+	// The fact that the puzzle says it is ordered at all is a red herring
+	// Each stone is completely alone
 	numberStrings := strings.Split(input, " ")
 	stones := make([]Stone, 0)
 	for _, numberStr := range numberStrings {
@@ -73,7 +124,7 @@ func TheWholeThing(input string, blinks int) {
 	}
 	list := datastructures.MakeLinkedList(stones)
 	// list.PrintList()
-	for range blinks {
+	for range 25 {
 		tail := list.Head
 		// fmt.Printf("TAIL\n")
 		consumed, newStone := tail.Value.FirstRule()
