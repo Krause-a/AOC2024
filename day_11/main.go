@@ -22,7 +22,8 @@ func main() {
 type Stone int
 
 func part_1(input string) {
-	TheWholeThing(input, 25)
+	// TheWholeThing(input, 25) // 55312
+	DynamicMethod(input, 25)
 }
 
 func (s Stone) FirstRule() (bool, Stone) {
@@ -57,7 +58,74 @@ func (s Stone) ThirdRule() Stone {
 }
 
 func part_2(input string) {
-	TheWholeThing(input, 75)
+	// TheWholeThing(input, 75)
+	DynamicMethod(input, 75)
+}
+
+type NextStone struct {
+	ns1 Stone
+	has2 bool
+	ns2 Stone
+}
+
+type AgedStone struct {
+	s Stone
+	age int
+}
+
+func DynamicMethod(input string, blinks int) {
+	// Well this did nothing notable and I ran out of RAM
+	numberStrings := strings.Split(input, " ")
+	startingStones := make([]AgedStone, 0)
+	for _, numberStr := range numberStrings {
+		stone, err := strconv.Atoi(numberStr)
+		if err != nil {
+			panic(err)
+		}
+		startingStones = append(startingStones, AgedStone {
+			s: Stone(stone),
+			age: 0,
+		})
+	}
+
+	stoneHistory := make(map[Stone]NextStone)
+
+	index := 0
+	for index < len(startingStones) {
+		as := startingStones[index]
+		index += 1
+		for as.age < blinks {
+			consumed, ns := as.s.FirstRule()
+			as.age += 1
+			if consumed {
+				stoneHistory[as.s] = NextStone{
+					ns1: ns,
+				}
+			} else {
+				consumed, nns := as.s.SecondRule()
+				if consumed {
+					stoneHistory[as.s] = NextStone{
+						ns1: nns[0],
+						has2: true,
+						ns2: nns[1],
+					}
+					startingStones = append(startingStones, AgedStone{
+						s: nns[1],
+						age: as.age,
+					})
+				} else {
+					stoneHistory[as.s] = NextStone{
+						ns1: as.s.ThirdRule(),
+					}
+				}
+			}
+			as.s = stoneHistory[as.s].ns1
+		}
+		if index & 1048575 == 1048575 {
+			fmt.Printf("%d out of %d\n", index, len(startingStones))
+		}
+	}
+	fmt.Printf("%v\n", len(startingStones))
 }
 
 func TheWholeThing(input string, blinks int) {
