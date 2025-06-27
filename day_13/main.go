@@ -145,6 +145,7 @@ func part_1(input string) {
 	println(len(machines))
 	var saftey = 1_000_000
 	for i, machine := range machines {
+		var machine_saftey = 1_000
 		fmt.Printf("In machine %d\n", i)
 		for !machine.isPastPrize() {
 			machine.pressB()
@@ -154,6 +155,7 @@ func part_1(input string) {
 		past_by_y := machine.current_location.y > machine.prize.y
 		for saftey > 0 {
 			saftey -= 1
+			machine_saftey -= 1
 			if machine.isOnPrize() {
 				fmt.Printf("Machine %d found the prize in %d tokens\n", i, machine.spent)
 				break
@@ -167,8 +169,10 @@ func part_1(input string) {
 			}
 			machine.pressA()
 			if past_by_x && machine.current_location.y > machine.prize.y || past_by_y && machine.current_location.x > machine.prize.x || machine.b_tokens < 0 {
-				fmt.Printf("Machine %d has no solution\n", i)
-				break
+				if machine_saftey < 1 {
+					fmt.Printf("Machine %d has no solution\n", i)
+					break
+				}
 			}
 		}
 		if saftey == 0 {
@@ -192,6 +196,7 @@ func part_1(input string) {
 // ANSWER ATTEMP: 32703 (Too low)
 // ANSWER ATTEMP: 31519 (Too low)
 // ANSWER ATTEMP: 32163 (Too low)
+// ANSWER ATTEMP: 35574 (Too low)
 
 func lines_into_machines(input string) []*Machine {
 	lines := strings.Split(input, "\n")
