@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	input, part := utils.ParseInput(12)
+	input, part := utils.ParseInput(13)
 	if part == 1 {
 		part_1(input)
 	} else {
@@ -142,6 +142,7 @@ func (m *Machine) unpressB() {
 func part_1(input string) {
 	println("Part 1 START")
 	var machines = lines_into_machines(input)
+	println(len(machines))
 	var saftey = 1_000_000
 	for i, machine := range machines {
 		fmt.Printf("In machine %d\n", i)
@@ -149,8 +150,8 @@ func part_1(input string) {
 			machine.pressB()
 		}
 		fmt.Printf("Spent %d tokens on B for %d\n", machine.spent, i)
-		growth_by_x := machine.b.x > machine.a.x
-		growth_by_y := machine.b.y > machine.a.y
+		past_by_x := machine.current_location.x > machine.prize.x
+		past_by_y := machine.current_location.y > machine.prize.y
 		for saftey > 0 {
 			saftey -= 1
 			if machine.isOnPrize() {
@@ -165,7 +166,7 @@ func part_1(input string) {
 				break
 			}
 			machine.pressA()
-			if growth_by_x && machine.current_location.y > machine.prize.y || growth_by_y && machine.current_location.x > machine.prize.x || machine.b_tokens < 0 {
+			if past_by_x && machine.current_location.y > machine.prize.y || past_by_y && machine.current_location.x > machine.prize.x || machine.b_tokens < 0 {
 				fmt.Printf("Machine %d has no solution\n", i)
 				break
 			}
@@ -189,6 +190,8 @@ func part_1(input string) {
 	println("Part 1 END")
 }
 // ANSWER ATTEMP: 32703 (Too low)
+// ANSWER ATTEMP: 31519 (Too low)
+// ANSWER ATTEMP: 32163 (Too low)
 
 func lines_into_machines(input string) []*Machine {
 	lines := strings.Split(input, "\n")

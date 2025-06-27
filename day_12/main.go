@@ -5,7 +5,7 @@ import (
 )
 
 func main() {
-	input, part := utils.ParseInput(2)
+	input, part := utils.ParseInput(12)
 	if part == 1 {
 		part_1(input)
 	} else {
