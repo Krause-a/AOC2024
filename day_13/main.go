@@ -221,7 +221,59 @@ func lines_into_machines(input string) []*Machine {
 
 func part_2(input string) {
 	println("Part 2 START")
-	println(input)
+	var machines = lines_into_machines(input)
+	println(len(machines))
+	var saftey = 1_000_000
+	var prize_offset = Point{x: 10000000000000, y: 10000000000000}
+	// Obv this will timeout.
+	for i, machine := range machines {
+		machine.prize.add(prize_offset)
+		var machine_saftey = 1_000
+		fmt.Printf("In machine %d\n", i)
+		for !machine.isPastPrize() {
+			machine.pressB()
+		}
+		fmt.Printf("Spent %d tokens on B for %d\n", machine.spent, i)
+		past_by_x := machine.current_location.x > machine.prize.x
+		past_by_y := machine.current_location.y > machine.prize.y
+		for saftey > 0 {
+			saftey -= 1
+			machine_saftey -= 1
+			if machine.isOnPrize() {
+				fmt.Printf("Machine %d found the prize in %d tokens\n", i, machine.spent)
+				break
+			}
+			for machine.isPastPrize() {
+				machine.unpressB()
+			}
+			if machine.isOnPrize() {
+				fmt.Printf("Machine %d found the prize in %d tokens\n", i, machine.spent)
+				break
+			}
+			machine.pressA()
+			if past_by_x && machine.current_location.y > machine.prize.y || past_by_y && machine.current_location.x > machine.prize.x || machine.b_tokens < 0 {
+				if machine_saftey < 1 {
+					fmt.Printf("Machine %d has no solution\n", i)
+					break
+				}
+			}
+		}
+		if saftey == 0 {
+			fmt.Printf("%v\n", machine)
+			println("\n\n\n\033[1;31mSAFTEY TRIPPED!!!\033[0m\n\n\n")
+			return
+		} else {
+			fmt.Printf("Machine Done %d, Saftey remaining: %d\n", i, saftey)
+		}
+	}
+	var total_tokens Token = 0
+	for i, machine := range machines {
+		if machine.got_prize {
+			fmt.Printf("Spent %d tokens to get prize for %d\n", machine.spent(), i )
+			total_tokens += machine.spent()
+		}
+	}
+	fmt.Printf("Total token spent to all prizes: %d\n", total_tokens)
 	println("Part 2 END")
 }
 
