@@ -150,21 +150,21 @@ func part_1(input string) {
 		for !machine.isPastPrize() {
 			machine.pressB()
 		}
-		fmt.Printf("Spent %d tokens on B for %d\n", machine.spent, i)
+		fmt.Printf("Spent %d tokens on B for %d\n", machine.spent(), i)
 		past_by_x := machine.current_location.x > machine.prize.x
 		past_by_y := machine.current_location.y > machine.prize.y
 		for saftey > 0 {
 			saftey -= 1
 			machine_saftey -= 1
 			if machine.isOnPrize() {
-				fmt.Printf("Machine %d found the prize in %d tokens\n", i, machine.spent)
+				fmt.Printf("Machine %d found the prize in %d tokens\n", i, machine.spent())
 				break
 			}
 			for machine.isPastPrize() {
 				machine.unpressB()
 			}
 			if machine.isOnPrize() {
-				fmt.Printf("Machine %d found the prize in %d tokens\n", i, machine.spent)
+				fmt.Printf("Machine %d found the prize in %d tokens\n", i, machine.spent())
 				break
 			}
 			machine.pressA()
@@ -225,7 +225,19 @@ func part_2(input string) {
 	println(len(machines))
 	var saftey = 1_000_000
 	var prize_offset = Point{x: 10000000000000, y: 10000000000000}
+	// 10 Trillion (14 digits) and buttons are always 2 digits
+	// So they would require between 10^11 to 10^12 button presses
 	// Obv this will timeout.
+
+	// New idea.
+	// Get the slope of the expensive button (e_slope).
+	// Create a line that passes through the prize point.
+	// Get the slope of the cheap button (c_slope).
+	// Create a line that passes through the origin.
+	// Find the intersection of these two lines
+	// Line 1: y = c_slope * x
+	// Line 2: y = e_slope * x + (prize.y - e_slope * prize.x)
+
 	for i, machine := range machines {
 		machine.prize.add(prize_offset)
 		var machine_saftey = 1_000
@@ -233,21 +245,21 @@ func part_2(input string) {
 		for !machine.isPastPrize() {
 			machine.pressB()
 		}
-		fmt.Printf("Spent %d tokens on B for %d\n", machine.spent, i)
+		fmt.Printf("Spent %d tokens on B for %d\n", machine.spent(), i)
 		past_by_x := machine.current_location.x > machine.prize.x
 		past_by_y := machine.current_location.y > machine.prize.y
 		for saftey > 0 {
 			saftey -= 1
 			machine_saftey -= 1
 			if machine.isOnPrize() {
-				fmt.Printf("Machine %d found the prize in %d tokens\n", i, machine.spent)
+				fmt.Printf("Machine %d found the prize in %d tokens\n", i, machine.spent())
 				break
 			}
 			for machine.isPastPrize() {
 				machine.unpressB()
 			}
 			if machine.isOnPrize() {
-				fmt.Printf("Machine %d found the prize in %d tokens\n", i, machine.spent)
+				fmt.Printf("Machine %d found the prize in %d tokens\n", i, machine.spent())
 				break
 			}
 			machine.pressA()
